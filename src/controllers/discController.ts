@@ -98,35 +98,42 @@ export const getDisc = async (
     }
 }
 
-export const getDiscsById = async (req:Request, res:Response): Promise <void> => {
+export const getDiscsById = async (
+    req:Request<IdParams>, 
+    res:Response<IDisc | ApiError>
+    ): Promise <Response<IDisc | ApiError>> => {
     try {
 
-        const getDisc: IDisc | null = await Disc.findById(req.params.id).populate("manufacturer");
+        const { id } = req.params;
+        const getDisc: IDisc | null = await Disc.findById(id).populate("manufacturer");
+
         if(!getDisc) {
-            res.status(404).json({error: "Discen finns inte i vårat sortiment!"});
-            return; 
+            return res.status(404).json({error: "Discen kunde inte hittas!"});
         }
 
-        res.status(200).json(getDisc);
+        return res.status(200).json(getDisc);
 
     } catch (err){
-        console.error("fel vid hämtning av discs:", err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error("fel vid hämtning av discs:", err, req.params.id);
+        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
     }
 }
 
 export const updateDisc = async (
-    req:Request<IdParams, {}, IUpdateDiscBody>, 
+    req:Request<IdParams, {}, {}, IUpdateDiscBody>, 
     res:Response<IDisc | ApiError>
-    ): Promise <IDisc | ApiError> => {
+    ): Promise <Response<IDisc | ApiError>> => {
     try {
+
+        const { id } = req.params;
+
         const getDisc: IDisc | null = await Disc.findByIdAndUpdate(
-            req.params.id, 
+            id, 
             req.body, 
             { new: true, runValidators: true });
 
         if (!getDisc) {
-            return res.status(404).json({error: `Disc med ID: ${req.params.id} går inte att hitta`});
+            return res.status(404).json({error: `Disc med ID: ${id} går inte att hitta`});
         }
 
         return res.status(200).json(getDisc);
@@ -140,7 +147,7 @@ export const updateDisc = async (
 export const deleteDisc = async (
     req:Request<IdParams>, 
     res:Response
-    ): Promise <Response<IDisc | ApiError>> => {
+    ): Promise <Response<ApiError | UserMessage>> => {
     try {
 
         const { id } = req.params;
@@ -155,7 +162,7 @@ export const deleteDisc = async (
         return res.status(200).json({ message: "Du har tagit bort discen" });
 
     } catch (err){
-        console.error(`Fel uppstod vid uppdatering av specifik tillverkare`, {
+        console.error(`Fel uppstod vid borttagning av specifik disc`, {
             id: req.params.id || "Ej tillgängligt",
             error: err
         });
