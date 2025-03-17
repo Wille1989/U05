@@ -1,15 +1,6 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
-import { Imanufacturer } from "./manufacturer";
+import mongoose, { Schema, Model } from "mongoose";
+import { IDisc } from "../types/disc";
 
-export interface IDisc extends Document {
-    title: string;
-    type: "Distance Driver" | "Driver" | "Mid-Range" | "Putter";
-    manufacturer: mongoose.Types.ObjectId | Imanufacturer;
-    speed: number;
-    glide: number;
-    turn: number;
-    fade: number;
-}
 
 const DiscSchema = new Schema<IDisc>({
     title: { type: String, required: true },

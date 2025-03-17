@@ -1,108 +1,194 @@
+
+// MAIN
+import mongoose from "mongoose";
 import { Request, Response } from "express";
-import manufacturer, { Imanufacturer } from "../models/manufacturer";
+
+// MODELS
+import manufacturer from "../models/manufacturer";
 import Disc from "../models/disc";
 
-export const createManufacturer = async (req:Request, res: Response): Promise <void> => {
+// TYPES
+import { ICreateManufacturerBody, IUpdateManufacturerBody } from "../types/manufacturer";
+import { IManufacturerBody } from "../types/manufacturer";
+import { ApiError }from "../types/responseTypes";
+import { IdParams } from "../types/requestTypes";
+
+
+
+
+// SKAPA TILLVERKARE
+export const createManufacturer = async (
+    req: Request <{}, {},ICreateManufacturerBody>, 
+    res: Response <IManufacturerBody | ApiError>
+    ): Promise <Response <IManufacturerBody | ApiError>> => {
+
     try {
-        const { name, country } = req.body;
+        let { name, country } = req.body;
 
         if (!name || !country) {
-            res.status(404).json({error: "båda fälten för tillverkare måste vara ifyllda!"});
-            return;
+            return res.status(404).json({ error: "Namn och Land är obligatoriska fält!" });
         }
 
-        const newManufacturer: Imanufacturer = await manufacturer.create ({
+        name = name.trim().toLowerCase();
+
+        const existingManufacturer = await manufacturer.findOne ({ name });
+        if(existingManufacturer) {
+            return res.status(409).json({ error: "Tillverkaren finns redan, hämta alla tillverkare istället!" });
+        }
+
+        const newManufacturer: IManufacturerBody = await manufacturer.create ({
             name,
             country,
         });
 
-        res.status(201).json(newManufacturer)
+        return res.status(201).json(newManufacturer)
 
     } catch (err) {
-        console.error(`Fel uppstod vid skapandet av tillverkare`, err)
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error(`Fel uppstod vid skapandet av tillverkare`, {
+            requestbody: req.body,
+            error: err
+        });
+
+        return res.status(500).json({error: "Ett internt serverfel uppstod vid anrop"});
+
     }
 }
 
-export const getManufacturer = async (req:Request, res:Response): Promise <void> => {
+
+// HÄMTA ALLA TILLVERKARE
+export const getManufacturer = async (
+    res: Response<IManufacturerBody[] | ApiError>
+    ): Promise<Response<IManufacturerBody[] | ApiError>> => {
     
     try {
-        const manufacturers: Imanufacturer[] = await manufacturer.find();
+        const manufacturers: IManufacturerBody[] = await manufacturer.find();
 
-        if(!manufacturers){
-            res.status(404).json(["Gick inte att hämta tillverkare!"]);
+        if(manufacturers.length === 0){
+            return res.status(404).json({ error: "inga tillverkare hittades!" });
         }
 
-        res.status(200).json(manufacturers);
+        return res.status(200).json(manufacturers);
 
     } catch (err) {
-        console.error(`Gick inte att hämta tillverkare`, err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error(`Gick inte att hämta tillverkare`, {
+            error: err
+        });
+
+        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+
     }
 };
 
-export const getManufacturerByID = async (req: Request, res: Response): Promise <void> => {
+
+// HÄMTA SPECIFIK TILLVERKARE
+export const getManufacturerByID = async (
+    req: Request<IdParams>, 
+    res: Response<IManufacturerBody | ApiError>
+    ): Promise <Response<IManufacturerBody | ApiError>> => {
+    
     try {
-        const getManufacturerByID: Imanufacturer | null = await manufacturer.findById(req.params.id);
+
+        const { id } = req.params;
+        const getManufacturerByID: IManufacturerBody | null = await manufacturer.findById(id);
 
         if(!getManufacturerByID){
-            res.status(404).json([`Tillverkaren kunde inte hittas!`]);
-            return;
+            return res.status(404).json({ error: "Tillverkaren kunde inte hittas!" });
         }
 
-        res.status(200).json(getManufacturerByID);
+        return res.status(200).json(getManufacturerByID);
 
     } catch (err) {
-        console.error(`Något fick fel vid hämtning av den specifika tillverkaren!
-            - ID ${req.params.id}`, 
-            "- Felmeddelande:", err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error(`Fel uppstod vid hämtning av specifik tillverkare`, {
+            id: req.params.id || "Ej tillgängligt",
+            error: err
+        });
+
+        if (err instanceof mongoose.Error.CastError) {
+            return res.status(400).json({ error: "Ogiltigt ID-format!"});
+        }
+
+        return res.status(500).json({error: "Ett internt serverfel uppstod vid anrop"});
+
     }
 }
 
-export const updateManufacturer = async (req: Request, res: Response): Promise <void> => {
+
+// HÄMTA OCH UPPDATERA BEFINTLIG TILLVERKARE
+export const updateManufacturer = async (
+    req: Request<IdParams, {}, IUpdateManufacturerBody>, 
+    res: Response<IManufacturerBody | ApiError>
+    ): Promise <Response<IManufacturerBody | ApiError>> => {
     try {
-        const manufacturerDocs: Imanufacturer | null = await manufacturer.findByIdAndUpdate(
-            req.params.id, 
-            req.body,
+
+        const { id } = req.params;
+        const updateData: IUpdateManufacturerBody = req.body;
+
+        if(!updateData.name && !updateData.country) {
+            return res.status(400).json({ error: "Fälten kan inte vara tomma!" });
+        }
+
+        const manufacturerDocs: IManufacturerBody | null = await manufacturer.findByIdAndUpdate(
+            id, 
+            updateData,
             { new: true, runValidators: true}
         );
 
         if(!manufacturerDocs){
-            res.status(404).json(["Tillverkaren kunde inte hittas och gick ej att uppdatera!"]);
-            return;
+            return res.status(404).json({ error: "tillverkare hittades ej och kunde inte uppdateras!" });
         }
 
-        res.status(200).json(manufacturerDocs);
+        return res.status(200).json(manufacturerDocs);
 
     } catch (err) {
-        console.error(`Fel vid uppdatering av tillverkare!
-            - ID: ${req.params.id}
-            - request body:`, req.body,
-            "- Felmeddelande:", err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error(`Fel uppstod vid uppdatering av specifik tillverkare`, {
+            id: req.params.id || "Ej tillgängligt",
+            requestbody: req.body,
+            error: err
+        });
+
+        if(err instanceof mongoose.Error.CastError) {
+            return res.status(400).json({ error: "Ogiltigt ID-format!" });
+        }
+
+        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+
     }
 }
 
-export const deleteManufacturer = async (req: Request, res: Response): Promise <void> => {
+
+// TA BORT TILLVERKARE
+export const deleteManufacturer = async (
+    req: Request<IdParams>, 
+    res: Response
+    ): Promise <Response<IManufacturerBody | ApiError>> => {
     try {
-        const deleteManufacturer: Imanufacturer | null = await manufacturer.findById(req.params.id);
+
+        const { id } = req.params;
+
+        if (!id) { 
+            return res.status(400).json({ error: "Ett ID måste anges!" });
+        }
+
+        const deleteManufacturer: IManufacturerBody | null = await manufacturer.findById(id);
 
         if(!deleteManufacturer) {
-            res.status(400).json({error: "Kan inte hitta en tillverkare med detta ID"});
-            return;
+            return res.status(400).json({ error: "Kan inte hitta en tillverkare med detta ID" });
+
         }
 
         await Disc.deleteMany({ manufacturer: deleteManufacturer._id});
 
-        await manufacturer.findByIdAndDelete(req.params.id);
+        await manufacturer.findByIdAndDelete(id);
     
-        res.status(200).json({ message: "Du har tagit bort tillverkaren och alla tillhörande discar!"});
+        return res.status(200).json({ message: "Du har tagit bort tillverkaren och alla tillhörande discar!"});
 
     } catch (err) {
-        console.error(`Fel uppstod vid borttagning av tillverkare!
-            - ID: ${req.params.id}`,
-            "- Felmeddelande:", err);
-        res.status(500).json({error: (err as Error).message});
+        console.error(`Fel uppstod när tillverkaren skulle tas bort`, {
+            id: req.params.id || "Ej tillgängligt",
+            error: err
+        });
+
+        return res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+
     }
 }

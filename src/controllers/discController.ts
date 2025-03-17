@@ -1,126 +1,100 @@
+
+// MAIN
 import { Request, Response } from "express";
-import Disc, { IDisc } from "../models/disc";
+import mongoose from "mongoose";
+
+// MODELS
+import Disc from "../models/disc";
 import manufacturer from "../models/manufacturer";
 
+// TYPES
+import { IDisc } from "../types/disc";
+import { ApiError, UserMessage }from "../types/responseTypes";
+import { IdParams, DiscQuery } from "../types/requestTypes";
+import { ICreateDiscBody, IUpdateDiscBody } from "../types/disc";
 
-export const createDisc = async (req:Request, res:Response): Promise <void> => {
+
+export const createDisc = async (
+    req:Request<{}, {}, ICreateDiscBody>, 
+    res:Response<IDisc | ApiError>
+    ): Promise <Response<IDisc | ApiError>> => {
     try {
 
-        const { title, type, manufacturer, speed, glide, turn, fade } = req.body;
+        const newDisc = new Disc(req.body);
 
-        if(!title || !type || !manufacturer || speed === undefined || glide === undefined || turn === undefined || fade === undefined) {
-            res.status(404).json({error: "Alla fält måste vara ifyllda!"});
-            return;
-        }
+        await newDisc.save();
 
-        const allowedTypes = ["Distance Driver", "Driver", "Mid-Range", "Putter"];
-        if(!allowedTypes.includes(type)) {
-            res.status(404).json({error: `Ogiltig disc-typ. Endast ${allowedTypes.join(", ")} är tillåtna`});
-            return;
-        }
-
-        const newDisc: IDisc = await Disc.create({
-            title,
-            type,
-            manufacturer,
-            speed,
-            glide,
-            turn,
-            fade,
-        });
-
-        res.status(201).json(newDisc);
+        return res.status(201).json(newDisc);
 
     } catch (err){
-        console.error("Det gick inte att skapa en ny disc", err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error("Fel uppstod när disc skulle skapas", {
+            error: err,
+            requestbody: req.body
+        });
+
+        if (err instanceof mongoose.Error.ValidationError) {
+            return res.status(400).json({ error: (err as Error).message});
+        } else {
+            return res.status(500).json({ error: "Ett internt serverfel uppstod vid anrop" });
+        }
     }
 };
 
-export const getDisc = async (req: Request, res: Response): Promise <void> => {
+export const getDisc = async (
+    req: Request<{}, {}, {}, DiscQuery>,
+    res: Response<IDisc[] | ApiError | UserMessage>
+    ): Promise <Response<IDisc[] | ApiError | UserMessage>> => {
   
     try {
-        let query: Record <string, unknown> = {};
-        const searchTerm = (req.query.search as string)?.trim();
+        let query: DiscQuery = {};
+        const searchTerm = (req.query.search as string)?.trim().toLowerCase();
 
         if(searchTerm) {
-            query.$or = [
-                { title: {$regex: searchTerm, $options: "i"} },
-                { type: {$regex: searchTerm, $options: "i"} }
-            ]
-        }
+            query.$or = query.$or || [];
 
-        if(searchTerm && !req.query.manufacturer) {
-            const manufacturerDocs = await manufacturer.find({
-                name: { $regex: searchTerm, $options: "i" },
-                country: { $regex: searchTerm, $options: "i" }
-            });
+            query.$or.push({ title: {$regex: searchTerm, $options: "i"} });
+            query.$or.push({ type: {$regex: searchTerm, $options: "i"} });
 
-            if(!manufacturerDocs){
-                throw new Error("Database error: Manufacturer query returned null");
-            }
+            if(!req.query.manufacturer) {
 
-            if(!query.$or){
-                query.$or = [] as Record <string, unknown> [];
-            }
-        
-            if(manufacturerDocs.length > 0) {
-                (query.$or as Record<string, unknown>[]).push({ manufacturer: { $in: manufacturerDocs.map(m => m._id) }});
-            } else {
-                throw new Error("Internal server Error: $or should be an array but isn't");
+                const manufacturerDocs = await manufacturer.find({
+                    name: { $regex: searchTerm, $options: "i" },
+                    country: { $regex: searchTerm, $options: "i" }
+                }) as { _id: mongoose.Types.ObjectId }[];
+
+                if(!manufacturerDocs || manufacturerDocs.length === 0) {
+                    return res.status(manufacturerDocs ? 404 : 500).json({ error: "Inga tillverkare hittades!" });
+                }
+
+                const manufacturerIds: mongoose.Types.ObjectId[] = manufacturerDocs.map(m => new mongoose.Types.ObjectId(m._id));
+
+                query.$or.push({ manufacturer: { $in: manufacturerIds } });
             }
         }
-  
-        if (req.query.type) query.type = req.query.type as string;
-        if (req.query.manufacturer) query.manufacturer = req.query.manufacturer as string;
-        
-        const numericField: string[] = ["speed", "glide", "turn", "fade"];
-        
-        numericField.forEach((field: string) => {
-            if(req.query[field]){
-                const value = req.query[field];
 
-                if (typeof value === "string"){
-                    query[field] = Number(value);
-                } else if (typeof value === "object" && value !== null) {
-                    query[field] = {};
+        const numericFields: string[] = ["speed", "glide", "turn", "fade"];
 
-                    for (const operator in value) {
-                        if (["gte", "lte", "gt", "lt"].includes(operator)){
-                            (query[field] as Record <string, number>)[`$${operator}`] = Number((value as Record <string, string>)[operator]);
-                        }
+            numericFields.forEach((field) => {
+                if(req.query[field]){
+                    const numericValue = Number(req.query[field]);
+
+                    if(!isNaN(numericValue)) {
+                        query[field] = numericValue;
                     }
                 }
-            }
-        });
+            });
 
+        if (query.$or && query.$or.length === 0) {
+            delete query.$or;
+        }
 
         let Discs = await Disc.find(query).populate("manufacturer");
 
-        if (Discs.length === 0){
-            let fallbackquery: Record <string, unknown> = {};
-
-            numericField.forEach((field) => {
-                if (req.query[field]){
-                    const requestedValue = Number(req.query[field]);
-                    fallbackquery[field] = { $in: [
-                        requestedValue - 1,
-                        requestedValue - 2,
-                        requestedValue - 3,
-                        requestedValue + 1,
-                        requestedValue + 2,
-                        requestedValue + 3,] }
-                }
-            });
-
-            Discs = await Disc.find(fallbackquery).populate("manufacturer");
-        }
-
-        res.status(200).json(Discs);
+        return res.status(200).json(Discs);
 
     } catch(err){
-        console.error(`fel för objektID: ${req.params.id}`);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error(`fel för objektID: `, err);
+        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
     }
 }
 
@@ -141,7 +115,10 @@ export const getDiscsById = async (req:Request, res:Response): Promise <void> =>
     }
 }
 
-export const updateDisc = async (req:Request, res:Response): Promise <void> => {
+export const updateDisc = async (
+    req:Request<IdParams, {}, IUpdateDiscBody>, 
+    res:Response<IDisc | ApiError>
+    ): Promise <IDisc | ApiError> => {
     try {
         const getDisc: IDisc | null = await Disc.findByIdAndUpdate(
             req.params.id, 
@@ -149,31 +126,39 @@ export const updateDisc = async (req:Request, res:Response): Promise <void> => {
             { new: true, runValidators: true });
 
         if (!getDisc) {
-            res.status(404).json({error: `Disc med ID: ${req.params.id} går inte att hitta`});
-            return;
+            return res.status(404).json({error: `Disc med ID: ${req.params.id} går inte att hitta`});
         }
 
-        res.status(200).json(getDisc);
+        return res.status(200).json(getDisc);
         
     } catch (err){
         console.error(`Ett fel uppstod när: ${req.params.id} skulle uppdateras och körningen avbröts!`, err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
     }
 }
 
-export const deleteDisc = async (req:Request, res:Response): Promise <void> => {
+export const deleteDisc = async (
+    req:Request<IdParams>, 
+    res:Response
+    ): Promise <Response<IDisc | ApiError>> => {
     try {
-        const deleteDisc: IDisc | null = await Disc.findByIdAndDelete(req.params.id);
+
+        const { id } = req.params;
+
+        const deleteDisc: IDisc | null = await Disc.findByIdAndDelete(id);
 
         if(!deleteDisc) {
-            res.status(404).json({error: `ID:t ${req.params.id} kan ej hittas!`});
-            return;
+            return res.status(404).json({error: `ID:t ${id} kan ej hittas!`});
+
         }
 
-        res.status(200).json({ message: "Du har tagit bort discen" });
+        return res.status(200).json({ message: "Du har tagit bort discen" });
 
     } catch (err){
-        console.error("Fel vid borttagning av disc:", err);
-        res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        console.error(`Fel uppstod vid uppdatering av specifik tillverkare`, {
+            id: req.params.id || "Ej tillgängligt",
+            error: err
+        });
+        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
     }
 }

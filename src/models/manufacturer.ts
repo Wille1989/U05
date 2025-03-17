@@ -1,13 +1,9 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { IManufacturerBody } from "../types/manufacturer";
 
-export interface Imanufacturer extends Document {
-    name: string;
-    country: string;
-}
-
-const ManufacturerSchema = new Schema <Imanufacturer> ({
+const ManufacturerSchema = new Schema <IManufacturerBody> ({
     name: {type: String, required: true},
     country: {type: String, required: true}
 });
 
-export default mongoose.model<Imanufacturer>("Manufacturer", ManufacturerSchema);
+export default mongoose.model<IManufacturerBody>("Manufacturer", ManufacturerSchema);

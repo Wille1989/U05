@@ -15,32 +15,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteDisc = exports.updateDisc = exports.getDiscsById = exports.getDisc = exports.createDisc = void 0;
 const disc_1 = __importDefault(require("../models/disc"));
 const manufacturer_1 = __importDefault(require("../models/manufacturer"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const createDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { title, type, manufacturer, speed, glide, turn, fade } = req.body;
-        if (!title || !type || !manufacturer || speed === undefined || glide === undefined || turn === undefined || fade === undefined) {
-            res.status(404).json({ error: "Alla fält måste vara ifyllda!" });
-            return;
-        }
-        const allowedTypes = ["Distance Driver", "Driver", "Mid-Range", "Putter"];
-        if (!allowedTypes.includes(type)) {
-            res.status(404).json({ error: `Ogiltig disc-typ. Endast ${allowedTypes.join(", ")} är tillåtna` });
-            return;
-        }
-        const newDisc = yield disc_1.default.create({
-            title,
-            type,
-            manufacturer,
-            speed,
-            glide,
-            turn,
-            fade,
-        });
+        const newDisc = new disc_1.default(req.body);
+        yield newDisc.save();
         res.status(201).json(newDisc);
     }
     catch (err) {
-        console.error("Det gick inte att skapa en ny disc", err);
-        res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        console.error("Fel vid skapande av disc", {
+            error: err,
+            requestbody: req.body
+        });
+        if (err instanceof mongoose_1.default.Error.ValidationError) {
+            res.status(400).json({ error: err.message });
+        }
+        else {
+            res.status(500).json({ error: "Ett internt serverfel uppstod vid anrop" });
+        }
     }
 });
 exports.createDisc = createDisc;
@@ -152,16 +144,19 @@ const updateDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.updateDisc = updateDisc;
 const deleteDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const deleteDisc = yield disc_1.default.findByIdAndDelete(req.params.id);
+        const { id } = req.params;
+        const deleteDisc = yield disc_1.default.findByIdAndDelete(id);
         if (!deleteDisc) {
-            res.status(404).json({ error: `ID:t ${req.params.id} kan ej hittas!` });
-            return;
+            return res.status(404).json({ error: `ID:t ${id} kan ej hittas!` });
         }
-        res.status(200).json({ message: "Du har tagit bort discen" });
+        return res.status(200).json({ message: "Du har tagit bort discen" });
     }
     catch (err) {
-        console.error("Fel vid borttagning av disc:", err);
-        res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        console.error(`Fel uppstod vid uppdatering av specifik tillverkare`, {
+            id: req.params.id || "Ej tillgängligt",
+            error: err
+        });
+        return res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
     }
 });
 exports.deleteDisc = deleteDisc;
