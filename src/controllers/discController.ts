@@ -9,7 +9,7 @@ import manufacturer from "../models/manufacturer";
 
 // TYPES
 import { IDisc } from "../types/disc";
-import { ApiError, UserMessage }from "../types/responseTypes";
+import { ApiError, UserMessage } from "../types/responseTypes";
 import { IdParams, DiscQuery } from "../types/requestTypes";
 import { ICreateDiscBody, IUpdateDiscBody } from "../types/disc";
 
@@ -126,10 +126,11 @@ export const updateDisc = async (
     try {
 
         const { id } = req.params;
+        const inputData = req.body;
 
         const getDisc: IDisc | null = await Disc.findByIdAndUpdate(
             id, 
-            req.body, 
+            inputData, 
             { new: true, runValidators: true });
 
         if (!getDisc) {
@@ -144,10 +145,11 @@ export const updateDisc = async (
     }
 }
 
+
 export const deleteDisc = async (
     req:Request<IdParams>, 
     res:Response
-    ): Promise <Response<ApiError | UserMessage>> => {
+    ): Promise <Response> => {
     try {
 
         const { id } = req.params;

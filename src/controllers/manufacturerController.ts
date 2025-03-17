@@ -10,7 +10,7 @@ import Disc from "../models/disc";
 // TYPES
 import { ICreateManufacturerBody, IUpdateManufacturerBody } from "../types/manufacturer";
 import { IManufacturerBody } from "../types/manufacturer";
-import { ApiError }from "../types/responseTypes";
+import { ApiResponse } from "../types/responseTypes";
 import { IdParams } from "../types/requestTypes";
 
 
@@ -19,29 +19,53 @@ import { IdParams } from "../types/requestTypes";
 // SKAPA TILLVERKARE
 export const createManufacturer = async (
     req: Request <{}, {},ICreateManufacturerBody>, 
-    res: Response <IManufacturerBody | ApiError>
-    ): Promise <Response <IManufacturerBody | ApiError>> => {
+    res: Response <ApiResponse<ICreateManufacturerBody>>
+    ): Promise <void> => {
 
     try {
         let { name, country } = req.body;
 
         if (!name || !country) {
-            return res.status(404).json({ error: "Namn och Land är obligatoriska fält!" });
+            res.status(404).json({
+                success: false,
+                data: null,
+                error: "Disc kunde inte hittas!",
+                message: null
+            });
+
+            return;
         }
 
+        // Check om tillverkaren redan finns i systemet
         name = name.trim().toLowerCase();
-
         const existingManufacturer = await manufacturer.findOne ({ name });
+
         if(existingManufacturer) {
-            return res.status(409).json({ error: "Tillverkaren finns redan, hämta alla tillverkare istället!" });
+            res.status(409).json({ 
+                success: false,
+                data: null,
+                error: "Tillverkaren finns redan, sök efter specifik tillverkare för ID",
+                message: null
+            });
+
+            return;
         }
 
+        // Skapa ny tillverkare
         const newManufacturer: IManufacturerBody = await manufacturer.create ({
             name,
             country,
         });
 
-        return res.status(201).json(newManufacturer)
+        res.status(201).json({
+            success: true,
+            data: newManufacturer,
+            error: null,
+            message: "Tillvarken tillagd i sortimentet!"
+        });
+
+        return;
+
 
     } catch (err) {
         console.error(`Fel uppstod vid skapandet av tillverkare`, {
@@ -49,33 +73,59 @@ export const createManufacturer = async (
             error: err
         });
 
-        return res.status(500).json({error: "Ett internt serverfel uppstod vid anrop"});
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: "Ett internt serverfel uppstod vid anrop",
+            message: null
+        });
+
+        return;
 
     }
 }
 
 
 // HÄMTA ALLA TILLVERKARE
-export const getManufacturer = async (
-    res: Response<IManufacturerBody[] | ApiError>
-    ): Promise<Response<IManufacturerBody[] | ApiError>> => {
+export const getManufacturer = async ( 
+    req: Request,
+    res: Response<ApiResponse<IManufacturerBody[]>>
+    ): Promise<void> => {
     
     try {
         const manufacturers: IManufacturerBody[] = await manufacturer.find();
 
         if(manufacturers.length === 0){
-            return res.status(404).json({ error: "inga tillverkare hittades!" });
+            res.status(404).json({
+                success: false,
+                data: null,
+                error: "inga tillverkare hittades!",
+                message: null
+            });
+
+            return;
         }
 
-        return res.status(200).json(manufacturers);
+        res.status(200).json({
+            success: true,
+            data: manufacturers,
+            error: null,
+            message: "Tillverkare hämtad!"
+        });
 
     } catch (err) {
         console.error(`Gick inte att hämta tillverkare`, {
             error: err
         });
 
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
-
+        res.status(500).json({
+            success: true,
+            data: null,
+            error: "Ett internt serverfel uppstod när anrop gjordes",
+            message: null
+        });
+        
+        return;
     }
 };
 
@@ -83,19 +133,31 @@ export const getManufacturer = async (
 // HÄMTA SPECIFIK TILLVERKARE
 export const getManufacturerByID = async (
     req: Request<IdParams>, 
-    res: Response<IManufacturerBody | ApiError>
-    ): Promise <Response<IManufacturerBody | ApiError>> => {
+    res: Response<ApiResponse<IManufacturerBody>>
+    ): Promise <void> => {
     
     try {
 
         const { id } = req.params;
         const getManufacturerByID: IManufacturerBody | null = await manufacturer.findById(id);
 
-        if(!getManufacturerByID){
-            return res.status(404).json({ error: "Tillverkaren kunde inte hittas!" });
+        if(!getManufacturerByID) {
+            res.status(404).json({
+                success: false,
+                data: null,
+                error: "Tillverkaren kunde inte hittas!",
+                message: null
+            });
+
+            return;
         }
 
-        return res.status(200).json(getManufacturerByID);
+        res.status(200).json({
+            success: true,
+            data: getManufacturerByID,
+            error: null,
+            message: `Tillverkaren med ID ${id} hämtad!`
+        });
 
     } catch (err) {
         console.error(`Fel uppstod vid hämtning av specifik tillverkare`, {
@@ -104,10 +166,24 @@ export const getManufacturerByID = async (
         });
 
         if (err instanceof mongoose.Error.CastError) {
-            return res.status(400).json({ error: "Ogiltigt ID-format!"});
+            res.status(400).json({
+                success: false,
+                data: null, 
+                error: "Ogiltigt ID-format!",
+                message: null
+            });
+
+            return;
         }
 
-        return res.status(500).json({error: "Ett internt serverfel uppstod vid anrop"});
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: "Ett internt serverfel uppstod vid anrop", 
+            message: null
+        });
+
+        return;
 
     }
 }
@@ -116,15 +192,22 @@ export const getManufacturerByID = async (
 // HÄMTA OCH UPPDATERA BEFINTLIG TILLVERKARE
 export const updateManufacturer = async (
     req: Request<IdParams, {}, IUpdateManufacturerBody>, 
-    res: Response<IManufacturerBody | ApiError>
-    ): Promise <Response<IManufacturerBody | ApiError>> => {
+    res: Response<ApiResponse<IUpdateManufacturerBody>>
+    ): Promise <void> => {
     try {
 
         const { id } = req.params;
         const updateData: IUpdateManufacturerBody = req.body;
 
         if(!updateData.name && !updateData.country) {
-            return res.status(400).json({ error: "Fälten kan inte vara tomma!" });
+            res.status(400).json({
+                success: false,
+                data: null, 
+                error: "Fälten kan inte vara tomma!", 
+                message: null 
+            });
+
+            return;
         }
 
         const manufacturerDocs: IManufacturerBody | null = await manufacturer.findByIdAndUpdate(
@@ -134,10 +217,21 @@ export const updateManufacturer = async (
         );
 
         if(!manufacturerDocs){
-            return res.status(404).json({ error: "tillverkare hittades ej och kunde inte uppdateras!" });
+            res.status(404).json({ 
+                success: false, 
+                data: null, 
+                error: "tillverkare hittades ej och kunde inte uppdateras!", 
+                message: null 
+            });
+
+            return;
         }
 
-        return res.status(200).json(manufacturerDocs);
+        res.status(200).json({
+            success: true, 
+            data: manufacturerDocs, 
+            error: null, 
+            message: `Uppdatering av ${updateData} gjord!`});
 
     } catch (err) {
         console.error(`Fel uppstod vid uppdatering av specifik tillverkare`, {
@@ -147,40 +241,52 @@ export const updateManufacturer = async (
         });
 
         if(err instanceof mongoose.Error.CastError) {
-            return res.status(400).json({ error: "Ogiltigt ID-format!" });
+            res.status(400).json({ 
+                success: false, 
+                data: null, 
+                error: "Ogiltigt ID-format!", 
+                message: null 
+            });
+
+            return;
         }
 
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        res.status(500).json({
+            success: false, 
+            data: null, 
+            error: "Ett internt serverfel uppstod när anrop gjordes", 
+            message: null
+        });
 
+        return;
     }
 }
 
 
 // TA BORT TILLVERKARE
-export const deleteManufacturer = async (
-    req: Request<IdParams>, 
-    res: Response
-    ): Promise <Response<IManufacturerBody | ApiError>> => {
+export const deleteManufacturerByID = async (req: Request, res: Response): Promise <void> => {
     try {
 
         const { id } = req.params;
 
         if (!id) { 
-            return res.status(400).json({ error: "Ett ID måste anges!" });
+            res.status(400).json({ error: "Ett ID måste anges!" });
+            return;
         }
 
         const deleteManufacturer: IManufacturerBody | null = await manufacturer.findById(id);
 
         if(!deleteManufacturer) {
-            return res.status(400).json({ error: "Kan inte hitta en tillverkare med detta ID" });
-
+            res.status(400).json({ error: "Kan inte hitta en tillverkare med detta ID" });
+            return; 
         }
 
         await Disc.deleteMany({ manufacturer: deleteManufacturer._id});
 
         await manufacturer.findByIdAndDelete(id);
-    
-        return res.status(200).json({ message: "Du har tagit bort tillverkaren och alla tillhörande discar!"});
+        
+        res.status(200).json({ message: "Du har tagit bort tillverkaren och alla tillhörande discar!"});
+
 
     } catch (err) {
         console.error(`Fel uppstod när tillverkaren skulle tas bort`, {
@@ -188,7 +294,8 @@ export const deleteManufacturer = async (
             error: err
         });
 
-        return res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        return;
 
     }
 }

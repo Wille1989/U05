@@ -1,7 +1,6 @@
-export interface ApiError {
-    error: string;
-}
-
-export interface UserMessage {
-    message: string;
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T | null;
+    error: string | null;
+    message: string | null;
 }

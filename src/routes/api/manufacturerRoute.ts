@@ -1,14 +1,13 @@
 import express from "express";
-import { Router } from "express";
 import {  
     createManufacturer, 
     getManufacturer, 
-    deleteManufacturer,
+    deleteManufacturerByID,
     getManufacturerByID,
     updateManufacturer
 } from "../../controllers/manufacturerController";
 
-const router: Router = express.Router();
+const router = express.Router();
 
 router.post("/create", createManufacturer); // Skapa tillverkare
 
@@ -18,6 +17,6 @@ router.put("/update/:id", updateManufacturer); // Uppdatera en befintlig tillver
 
 router.post("/show/:id", getManufacturerByID); // Hämta specifik tillverkare
 
-router.delete("/delete/:id", deleteManufacturer); // Ta bort en tillverkare
+router.delete("/delete/:id", deleteManufacturerByID); // Ta bort en tillverkare
 
 export default router;

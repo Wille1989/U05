@@ -11,4 +11,8 @@ router.get("/index", discController_1.getDisc); // Hämta alla discar
 router.get("/show/:id", discController_1.getDiscsById); // Hämta specifik disc
 router.put("/update/:id", discController_1.updateDisc); // Uppdatera befintlig disc
 router.delete("/delete/:id", discController_1.deleteDisc); // Ta bort en disc
+router.delete("/delete/:id", (req, res) => {
+    console.log("DELETE request received, ID:", req.params.id);
+    res.status(200).json({ message: "Delete successful!" });
+});
 exports.default = router;

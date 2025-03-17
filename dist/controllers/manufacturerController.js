@@ -13,9 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteManufacturer = exports.updateManufacturer = exports.getManufacturerByID = exports.getManufacturer = exports.createManufacturer = void 0;
+// MAIN
+const mongoose_1 = __importDefault(require("mongoose"));
+// MODELS
 const manufacturer_1 = __importDefault(require("../models/manufacturer"));
 const disc_1 = __importDefault(require("../models/disc"));
-const mongoose_1 = __importDefault(require("mongoose"));
 // SKAPA TILLVERKARE
 const createManufacturer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
