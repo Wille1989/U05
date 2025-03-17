@@ -10,5 +10,5 @@ router.post("/create", manufacturerController_1.createManufacturer); // Skapa ti
 router.get("/index", manufacturerController_1.getManufacturer); // Hämta alla tillverkare
 router.put("/update/:id", manufacturerController_1.updateManufacturer); // Uppdatera en befintlig tillverkare
 router.post("/show/:id", manufacturerController_1.getManufacturerByID); // Hämta specifik tillverkare
-router.delete("/delete/:id", manufacturerController_1.deleteManufacturer); // Ta bort en tillverkare
+router.delete("/delete/:id", manufacturerController_1.deleteManufacturerByID); // Ta bort en tillverkare
 exports.default = router;

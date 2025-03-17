@@ -21,7 +21,12 @@ const createDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const newDisc = new disc_1.default(req.body);
         yield newDisc.save();
-        return res.status(201).json(newDisc);
+        res.status(201).json({
+            success: true,
+            data: newDisc,
+            error: null,
+            message: `Discen med ID ${newDisc} sparades!`
+        });
     }
     catch (err) {
         console.error("Fel uppstod när disc skulle skapas", {
@@ -29,10 +34,22 @@ const createDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             requestbody: req.body
         });
         if (err instanceof mongoose_1.default.Error.ValidationError) {
-            return res.status(400).json({ error: err.message });
+            res.status(400).json({
+                success: false,
+                data: null,
+                error: "Valideringen misslyckades, försök igen",
+                message: null
+            });
+            return;
         }
         else {
-            return res.status(500).json({ error: "Ett internt serverfel uppstod vid anrop" });
+            res.status(500).json({
+                success: false,
+                data: null,
+                error: "Ett internt serverfel uppstod vid anrop",
+                message: null
+            });
+            return;
         }
     }
 });
@@ -51,8 +68,21 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     name: { $regex: searchTerm, $options: "i" },
                     country: { $regex: searchTerm, $options: "i" }
                 });
-                if (!manufacturerDocs || manufacturerDocs.length === 0) {
-                    return res.status(manufacturerDocs ? 404 : 500).json({ error: "Inga tillverkare hittades!" });
+                if (manufacturerDocs.length === 0) {
+                    res.status(500).json({
+                        success: false,
+                        data: null,
+                        error: "Dokumentet innehåller för få tecken",
+                        message: null
+                    });
+                }
+                if (!manufacturerDocs) {
+                    res.status(404).json({
+                        success: false,
+                        data: null,
+                        error: "Inga tillverkare hittades!",
+                        message: null
+                    });
                 }
                 const manufacturerIds = manufacturerDocs.map(m => new mongoose_1.default.Types.ObjectId(m._id));
                 query.$or.push({ manufacturer: { $in: manufacturerIds } });
@@ -70,12 +100,23 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (query.$or && query.$or.length === 0) {
             delete query.$or;
         }
-        let Discs = yield disc_1.default.find(query).populate("manufacturer");
-        return res.status(200).json(Discs);
+        let Discs = yield disc_1.default.find(query).populate("manufacturer").lean();
+        res.status(200).json({
+            success: true,
+            data: Discs,
+            error: null,
+            message: "Ny disc tillagd!"
+        });
     }
     catch (err) {
         console.error(`fel för objektID: `, err);
-        return res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: "Ett internt serverfel uppstod när anrop gjordes",
+            message: null
+        });
+        return;
     }
 });
 exports.getDisc = getDisc;
@@ -84,13 +125,30 @@ const getDiscsById = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const { id } = req.params;
         const getDisc = yield disc_1.default.findById(id).populate("manufacturer");
         if (!getDisc) {
-            return res.status(404).json({ error: "Discen kunde inte hittas!" });
+            res.status(404).json({
+                success: false,
+                data: null,
+                error: "Discen kunde inte hittas!",
+                message: null
+            });
+            return;
         }
-        return res.status(200).json(getDisc);
+        res.status(200).json({
+            success: true,
+            data: getDisc,
+            error: null,
+            message: `Disc med ID ${id} hämtad!`
+        });
     }
     catch (err) {
         console.error("fel vid hämtning av discs:", err, req.params.id);
-        return res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: "Ett internt serverfel uppstod när anrop gjordes",
+            message: null
+        });
+        return;
     }
 });
 exports.getDiscsById = getDiscsById;
@@ -100,44 +158,65 @@ const updateDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const inputData = req.body;
         const getDisc = yield disc_1.default.findByIdAndUpdate(id, inputData, { new: true, runValidators: true });
         if (!getDisc) {
-            return res.status(404).json({ error: `Disc med ID: ${id} går inte att hitta` });
+            res.status(404).json({
+                success: false,
+                data: null,
+                error: `Disc med ID: ${id} går inte att hitta`,
+                message: null
+            });
+            return;
         }
-        return res.status(200).json(getDisc);
+        res.status(200).json({
+            success: true,
+            data: getDisc,
+            error: null,
+            message: `Disc med ID${id} uppdaterades!`
+        });
     }
     catch (err) {
         console.error(`Ett fel uppstod när: ${req.params.id} skulle uppdateras och körningen avbröts!`, err);
-        return res.status(500).json({ error: "Ett internt serverfel uppstod när anrop gjordes" });
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: "Ett internt serverfel uppstod när anrop gjordes",
+            message: null
+        });
+        return;
     }
 });
 exports.updateDisc = updateDisc;
-const deleteDisc = (req, res) => {
-    console.log("DELETE-funktion anropad med ID:", req.params.id);
-    return res.status(200).json({ message: "DELETE lyckades!" });
-};
-exports.deleteDisc = deleteDisc;
-/*
-export const deleteDisc = async (
-    req:Request<IdParams>,
-    res:Response
-    ): Promise <Response> => {
+const deleteDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-
         const { id } = req.params;
-
-        const deleteDisc: IDisc | null = await Disc.findByIdAndDelete(id);
-
-        if(!deleteDisc) {
-            return res.status(404).json({error: `ID:t ${id} kan ej hittas!`});
-
+        const deleteDisc = yield disc_1.default.findByIdAndDelete(id);
+        if (!deleteDisc) {
+            res.status(404).json({
+                success: false,
+                data: null,
+                error: `ID:t ${id} kan ej hittas!`,
+                message: null
+            });
+            return;
         }
-
-        return res.status(200).json({ message: "Du har tagit bort discen" });
-
-    } catch (err){
+        res.status(200).json({
+            success: true,
+            data: null,
+            error: null,
+            message: "Du har tagit bort discen"
+        });
+    }
+    catch (err) {
         console.error(`Fel uppstod vid borttagning av specifik disc`, {
             id: req.params.id || "Ej tillgängligt",
             error: err
         });
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: "Ett internt serverfel uppstod när anrop gjordes",
+            message: null
+        });
+        return;
     }
-}*/ 
+});
+exports.deleteDisc = deleteDisc;
