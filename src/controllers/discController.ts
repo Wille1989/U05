@@ -9,22 +9,27 @@ import manufacturer from "../models/manufacturer";
 
 // TYPES
 import { IDisc } from "../types/disc";
-import { ApiError, UserMessage } from "../types/responseTypes";
+import { ApiResponse } from "../types/responseTypes";
 import { IdParams, DiscQuery } from "../types/requestTypes";
 import { ICreateDiscBody, IUpdateDiscBody } from "../types/disc";
 
 
 export const createDisc = async (
     req:Request<{}, {}, ICreateDiscBody>, 
-    res:Response<IDisc | ApiError>
-    ): Promise <Response<IDisc | ApiError>> => {
+    res:Response<ApiResponse<IDisc>>
+    ): Promise <void> => {
     try {
 
         const newDisc = new Disc(req.body);
 
         await newDisc.save();
 
-        return res.status(201).json(newDisc);
+        res.status(201).json({
+            success: true, 
+            data: newDisc, 
+            error: null, 
+            message: `Discen med ID ${newDisc} sparades!`
+        });
 
     } catch (err){
         console.error("Fel uppstod när disc skulle skapas", {
@@ -33,17 +38,32 @@ export const createDisc = async (
         });
 
         if (err instanceof mongoose.Error.ValidationError) {
-            return res.status(400).json({ error: (err as Error).message});
+            res.status(400).json({ 
+                success: false, 
+                data: null, 
+                error: "Valideringen misslyckades, försök igen", 
+                message: null
+            });
+
+            return;
+
         } else {
-            return res.status(500).json({ error: "Ett internt serverfel uppstod vid anrop" });
+            res.status(500).json({
+                success: false, 
+                data: null, 
+                error: "Ett internt serverfel uppstod vid anrop", 
+                message: null 
+            });
+
+            return;
         }
     }
 };
 
 export const getDisc = async (
     req: Request<{}, {}, {}, DiscQuery>,
-    res: Response<IDisc[] | ApiError | UserMessage>
-    ): Promise <Response<IDisc[] | ApiError | UserMessage>> => {
+    res: Response<ApiResponse<IDisc[]>>
+    ): Promise <void> => {
   
     try {
         let query: DiscQuery = {};
@@ -62,8 +82,21 @@ export const getDisc = async (
                     country: { $regex: searchTerm, $options: "i" }
                 }) as { _id: mongoose.Types.ObjectId }[];
 
-                if(!manufacturerDocs || manufacturerDocs.length === 0) {
-                    return res.status(manufacturerDocs ? 404 : 500).json({ error: "Inga tillverkare hittades!" });
+                if(manufacturerDocs.length === 0) {
+                    res.status(500).json({
+                        success: false, 
+                        data: null, 
+                        error: "Dokumentet innehåller för få tecken", 
+                        message: null
+                    });
+                }
+
+                if(!manufacturerDocs) {
+                    res.status(404).json({
+                        success: false, 
+                        data: null, 
+                        error: "Inga tillverkare hittades!", 
+                        message: null });
                 }
 
                 const manufacturerIds: mongoose.Types.ObjectId[] = manufacturerDocs.map(m => new mongoose.Types.ObjectId(m._id));
@@ -88,41 +121,72 @@ export const getDisc = async (
             delete query.$or;
         }
 
-        let Discs = await Disc.find(query).populate("manufacturer");
+        let Discs: IDisc[] = await Disc.find(query).populate("manufacturer").lean();
 
-        return res.status(200).json(Discs);
+        res.status(200).json({
+            success: true, 
+            data: Discs, 
+            error: null, 
+            message:"Ny disc tillagd!"});
 
     } catch(err){
         console.error(`fel för objektID: `, err);
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+
+        res.status(500).json({
+            success: false, 
+            data: null, 
+            error: "Ett internt serverfel uppstod när anrop gjordes", 
+            message: null});
+
+        return;
     }
 }
 
 export const getDiscsById = async (
     req:Request<IdParams>, 
-    res:Response<IDisc | ApiError>
-    ): Promise <Response<IDisc | ApiError>> => {
+    res:Response<ApiResponse<IDisc>>
+    ): Promise <void> => {
     try {
 
         const { id } = req.params;
         const getDisc: IDisc | null = await Disc.findById(id).populate("manufacturer");
 
         if(!getDisc) {
-            return res.status(404).json({error: "Discen kunde inte hittas!"});
+            res.status(404).json({
+                success: false, 
+                data: null, 
+                error: "Discen kunde inte hittas!", 
+                message: null
+            });
+
+            return;
         }
 
-        return res.status(200).json(getDisc);
+        res.status(200).json({
+            success: true, 
+            data: getDisc, 
+            error: null, 
+            message: `Disc med ID ${id} hämtad!`
+        });
 
     } catch (err){
         console.error("fel vid hämtning av discs:", err, req.params.id);
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+
+        res.status(500).json({
+            success: false, 
+            data: null, 
+            error: "Ett internt serverfel uppstod när anrop gjordes", 
+            message: null
+        });
+
+        return;
     }
 }
 
 export const updateDisc = async (
     req:Request<IdParams, {}, {}, IUpdateDiscBody>, 
-    res:Response<IDisc | ApiError>
-    ): Promise <Response<IDisc | ApiError>> => {
+    res:Response<ApiResponse<IDisc>>
+    ): Promise <void> => {
     try {
 
         const { id } = req.params;
@@ -134,14 +198,32 @@ export const updateDisc = async (
             { new: true, runValidators: true });
 
         if (!getDisc) {
-            return res.status(404).json({error: `Disc med ID: ${id} går inte att hitta`});
+            res.status(404).json({
+                success: false, 
+                data: null, 
+                error: `Disc med ID: ${id} går inte att hitta`, 
+                message: null});
+
+            return;
         }
 
-        return res.status(200).json(getDisc);
+        res.status(200).json({
+            success: true, 
+            data: getDisc, 
+            error: null, 
+            message: `Disc med ID${id} uppdaterades!`});
         
     } catch (err){
         console.error(`Ett fel uppstod när: ${req.params.id} skulle uppdateras och körningen avbröts!`, err);
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+
+        res.status(500).json({
+            success: false, 
+            data: null, 
+            error: "Ett internt serverfel uppstod när anrop gjordes", 
+            message: null
+        });
+
+        return;
     }
 }
 
@@ -149,7 +231,7 @@ export const updateDisc = async (
 export const deleteDisc = async (
     req:Request<IdParams>, 
     res:Response
-    ): Promise <Response> => {
+    ): Promise <void> => {
     try {
 
         const { id } = req.params;
@@ -157,17 +239,36 @@ export const deleteDisc = async (
         const deleteDisc: IDisc | null = await Disc.findByIdAndDelete(id);
 
         if(!deleteDisc) {
-            return res.status(404).json({error: `ID:t ${id} kan ej hittas!`});
+            res.status(404).json({
+                success: false, 
+                data:null, 
+                error: `ID:t ${id} kan ej hittas!`, 
+                message: null
+            });
 
+            return;
         }
 
-        return res.status(200).json({ message: "Du har tagit bort discen" });
+        res.status(200).json({
+            success: true, 
+            data: null, 
+            error: null, 
+            message: "Du har tagit bort discen"
+        });
 
     } catch (err){
         console.error(`Fel uppstod vid borttagning av specifik disc`, {
             id: req.params.id || "Ej tillgängligt",
             error: err
         });
-        return res.status(500).json({error: "Ett internt serverfel uppstod när anrop gjordes"});
+
+        res.status(500).json({
+            success: false, 
+            data: null, 
+            error: "Ett internt serverfel uppstod när anrop gjordes", 
+            message: null
+        });
+
+        return;
     }
 }
