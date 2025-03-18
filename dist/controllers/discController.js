@@ -34,6 +34,8 @@ const createDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             requestbody: req.body
         });
         if (err instanceof mongoose_1.default.Error.ValidationError) {
+            console.error("Mongooese validation Error:", err);
+            console.log("Request Body Received:", req.body);
             res.status(400).json({
                 success: false,
                 data: null,

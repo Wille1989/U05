@@ -26,7 +26,7 @@ const createManufacturer = (req, res) => __awaiter(void 0, void 0, void 0, funct
             res.status(404).json({
                 success: false,
                 data: null,
-                error: "Disc kunde inte hittas!",
+                error: "Ange Namn och Land för tillverkare :)",
                 message: null
             });
             return;

@@ -17,8 +17,8 @@ connectDB();
 app.use(express.json());
 
 // Routes
-app.use("/discs", discRoute);
-app.use("/manufacturer", manufacturerRoute);
+app.use("/api/discs", discRoute);
+app.use("/api/manufacturer", manufacturerRoute);
 
 app.get("/", (req,res) => {
     res.send("API is running");

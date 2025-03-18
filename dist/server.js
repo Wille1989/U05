@@ -16,8 +16,8 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 // Middlewares
 app.use(express_1.default.json());
 // Routes
-app.use("/discs", discRoute_1.default);
-app.use("/manufacturer", manufacturerRoute_1.default);
+app.use("/api/discs", discRoute_1.default);
+app.use("/api/manufacturer", manufacturerRoute_1.default);
 app.get("/", (req, res) => {
     res.send("API is running");
 });

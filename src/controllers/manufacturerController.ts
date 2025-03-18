@@ -29,7 +29,7 @@ export const createManufacturer = async (
             res.status(404).json({
                 success: false,
                 data: null,
-                error: "Disc kunde inte hittas!",
+                error: "Ange Namn och Land för tillverkare :)",
                 message: null
             });
 

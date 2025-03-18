@@ -38,6 +38,8 @@ export const createDisc = async (
         });
 
         if (err instanceof mongoose.Error.ValidationError) {
+            console.error("Mongooese validation Error:", err);
+            console.log("Request Body Received:", req.body);
             res.status(400).json({ 
                 success: false, 
                 data: null, 
@@ -68,6 +70,8 @@ export const getDisc = async (
     try {
         let query: DiscQuery = {};
         const searchTerm = (req.query.search as string)?.trim().toLowerCase();
+
+        console.log("🔍 Sökterm:", searchTerm);
 
         if(searchTerm) {
             query.$or = query.$or || [];
