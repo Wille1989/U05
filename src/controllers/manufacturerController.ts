@@ -130,7 +130,7 @@ export const getManufacturer = async (
 };
 
 
-// HÄMTA SPECIFIK TILLVERKARE
+// HÄMTA SPECIFIK TILLVERKARE MED ID
 export const getManufacturerByID = async (
     req: Request<IdParams>, 
     res: Response<ApiResponse<IManufacturerBody>>
@@ -189,7 +189,7 @@ export const getManufacturerByID = async (
 }
 
 
-// HÄMTA OCH UPPDATERA BEFINTLIG TILLVERKARE
+// HÄMTA OCH UPPDATERA BEFINTLIG TILLVERKARE MED PATCH METODEN
 export const updateManufacturer = async (
     req: Request<IdParams, {}, IUpdateManufacturerBody>, 
     res: Response<ApiResponse<IUpdateManufacturerBody>>

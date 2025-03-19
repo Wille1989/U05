@@ -17,6 +17,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 // MODELS
 const disc_1 = __importDefault(require("../models/disc"));
 const manufacturer_1 = __importDefault(require("../models/manufacturer"));
+// Skapa en ny disc, kopplad till en tillverkare via ID
 const createDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const newDisc = new disc_1.default(req.body);
@@ -80,25 +81,31 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     { country: { $regex: `.*${searchTerm}.*`, $options: "i" } }
                 ]
             });
-            console.log("🔍 Tillverkare som hittades:", manufacturerDocs);
             if (manufacturerDocs.length > 0) {
                 const manufacturerIds = manufacturerDocs.map(m => new mongoose_1.default.Types.ObjectId(m._id));
-                console.log("✅ Manufacturer IDs som ska läggas till i query:", manufacturerIds);
                 query.$or = query.$or || [];
                 query.$or.push({ manufacturer: { $in: manufacturerIds } });
             }
             if (query.$or && query.$or.length === 0) {
-                console.log("⚠️ VARNING: query.$or är tom! Det betyder att vi kanske söker utan filter.");
                 delete query.$or;
             }
-            console.log("✅ Byggt query för Disc.find():", JSON.stringify(query, null, 2));
             let Discs = yield disc_1.default.find(query).populate("manufacturer").lean();
-            res.status(200).json({
-                success: true,
-                data: Discs,
-                error: null,
-                message: "Visar resultatet av din sökning!"
-            });
+            if (Discs.length === 0) {
+                res.status(404).json({
+                    success: true,
+                    data: Discs,
+                    error: null,
+                    message: "Sökningen matchade inget resultat!"
+                });
+            }
+            else {
+                res.status(200).json({
+                    success: true,
+                    data: Discs,
+                    error: null,
+                    message: "Visar resultatet av din sökning!",
+                });
+            }
         }
     }
     catch (err) {
@@ -113,6 +120,7 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getDisc = getDisc;
+// HÄMTA SPECIFIK DISC GENOM ATT ANGE ID
 const getDiscsById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -145,6 +153,7 @@ const getDiscsById = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.getDiscsById = getDiscsById;
+// UPPDATERA DELAR AV EN DISC GENOM PATCH METOD
 const updateDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -178,6 +187,7 @@ const updateDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.updateDisc = updateDisc;
+// TA BORT DISC
 const deleteDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;

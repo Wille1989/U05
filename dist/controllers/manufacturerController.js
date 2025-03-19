@@ -105,7 +105,7 @@ const getManufacturer = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.getManufacturer = getManufacturer;
-// HÄMTA SPECIFIK TILLVERKARE
+// HÄMTA SPECIFIK TILLVERKARE MED ID
 const getManufacturerByID = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -150,7 +150,7 @@ const getManufacturerByID = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.getManufacturerByID = getManufacturerByID;
-// HÄMTA OCH UPPDATERA BEFINTLIG TILLVERKARE
+// HÄMTA OCH UPPDATERA BEFINTLIG TILLVERKARE MED PATCH METODEN
 const updateManufacturer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;

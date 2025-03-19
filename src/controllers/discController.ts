@@ -14,6 +14,7 @@ import { IdParams, DiscQuery } from "../types/requestTypes";
 import { ICreateDiscBody, IUpdateDiscBody } from "../types/disc";
 
 
+// Skapa en ny disc, kopplad till en tillverkare via ID
 export const createDisc = async (
     req: Request<{}, {}, ICreateDiscBody>,
     res: Response<ApiResponse<IDisc>>
@@ -103,20 +104,29 @@ export const getDisc = async (
             }
             
 
-        if (query.$or && query.$or.length === 0) {
-            delete query.$or;
+            if (query.$or && query.$or.length === 0) {
+                delete query.$or;
+            }
+
+            let Discs: IDisc[] = await Disc.find(query).populate("manufacturer").lean();
+
+            if(Discs.length === 0){
+                res.status(404).json({
+                    success: true,
+                    data: Discs, 
+                    error: null,
+                    message: "Sökningen matchade inget resultat!"
+                }); 
+            } else {
+                res.status(200).json({
+                    success: true,
+                    data: Discs, 
+                    error: null,
+                    message: "Visar resultatet av din sökning!",
+                });
+            } 
         }
 
-        let Discs: IDisc[] = await Disc.find(query).populate("manufacturer").lean();
-
-        res.status(200).json({
-            success: true,
-            data: Discs, 
-            error: null,
-            message: "Visar resultatet av din sökning!"
-        });
-
-    } 
     } catch (err) {
         console.error(`fel för objektID: `, err);
 
@@ -131,6 +141,7 @@ export const getDisc = async (
     }
 }
 
+// HÄMTA SPECIFIK DISC GENOM ATT ANGE ID
 export const getDiscsById = async (
     req: Request<IdParams>,
     res: Response<ApiResponse<IDisc>>
@@ -172,6 +183,7 @@ export const getDiscsById = async (
     }
 }
 
+// UPPDATERA DELAR AV EN DISC GENOM PATCH METOD
 export const updateDisc = async (
     req: Request<IdParams, {}, {}, IUpdateDiscBody>,
     res: Response<ApiResponse<IDisc>>
@@ -218,7 +230,7 @@ export const updateDisc = async (
     }
 }
 
-
+// TA BORT DISC
 export const deleteDisc = async (
     req: Request<IdParams>,
     res: Response
