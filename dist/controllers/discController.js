@@ -56,6 +56,7 @@ const createDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.createDisc = createDisc;
+// HÄMTA DISC ELLER TILLVERKARE BASERAT PÅ SÖKNINGSFILTER
 const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -63,52 +64,42 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const searchTerm = (_a = req.query.search) === null || _a === void 0 ? void 0 : _a.trim().toLowerCase();
         if (searchTerm) {
             query.$or = query.$or || [];
-            query.$or.push({ title: { $regex: searchTerm, $options: "i" } });
-            query.$or.push({ type: { $regex: searchTerm, $options: "i" } });
-            if (!req.query.manufacturer) {
-                const manufacturerDocs = yield manufacturer_1.default.find({
-                    name: { $regex: searchTerm, $options: "i" },
-                    country: { $regex: searchTerm, $options: "i" }
+            query.$or.push({ title: { $regex: `.*${searchTerm}.*`, $options: "i" } });
+            query.$or.push({ type: { $regex: `.*${searchTerm}.*`, $options: "i" } });
+            const numericValue = Number(searchTerm);
+            if (!isNaN(numericValue)) {
+                const numericFields = ["speed", "glide", "turn", "fade"];
+                numericFields.forEach((field) => {
+                    var _a;
+                    (_a = query.$or) === null || _a === void 0 ? void 0 : _a.push({ [field]: numericValue });
                 });
-                if (manufacturerDocs.length === 0) {
-                    res.status(500).json({
-                        success: false,
-                        data: null,
-                        error: "Dokumentet innehåller för få tecken",
-                        message: null
-                    });
-                }
-                if (!manufacturerDocs) {
-                    res.status(404).json({
-                        success: false,
-                        data: null,
-                        error: "Inga tillverkare hittades!",
-                        message: null
-                    });
-                }
+            }
+            const manufacturerDocs = yield manufacturer_1.default.find({
+                $or: [
+                    { name: { $regex: `.*${searchTerm}.*`, $options: "i" } },
+                    { country: { $regex: `.*${searchTerm}.*`, $options: "i" } }
+                ]
+            });
+            console.log("🔍 Tillverkare som hittades:", manufacturerDocs);
+            if (manufacturerDocs.length > 0) {
                 const manufacturerIds = manufacturerDocs.map(m => new mongoose_1.default.Types.ObjectId(m._id));
+                console.log("✅ Manufacturer IDs som ska läggas till i query:", manufacturerIds);
+                query.$or = query.$or || [];
                 query.$or.push({ manufacturer: { $in: manufacturerIds } });
             }
-        }
-        const numericFields = ["speed", "glide", "turn", "fade"];
-        numericFields.forEach((field) => {
-            if (req.query[field]) {
-                const numericValue = Number(req.query[field]);
-                if (!isNaN(numericValue)) {
-                    query[field] = numericValue;
-                }
+            if (query.$or && query.$or.length === 0) {
+                console.log("⚠️ VARNING: query.$or är tom! Det betyder att vi kanske söker utan filter.");
+                delete query.$or;
             }
-        });
-        if (query.$or && query.$or.length === 0) {
-            delete query.$or;
+            console.log("✅ Byggt query för Disc.find():", JSON.stringify(query, null, 2));
+            let Discs = yield disc_1.default.find(query).populate("manufacturer").lean();
+            res.status(200).json({
+                success: true,
+                data: Discs,
+                error: null,
+                message: "Visar resultatet av din sökning!"
+            });
         }
-        let Discs = yield disc_1.default.find(query).populate("manufacturer").lean();
-        res.status(200).json({
-            success: true,
-            data: Discs,
-            error: null,
-            message: "Ny disc tillagd!"
-        });
     }
     catch (err) {
         console.error(`fel för objektID: `, err);

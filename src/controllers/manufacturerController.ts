@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { Request, Response } from "express";
 
 // MODELS
-import manufacturer from "../models/manufacturer";
+import Manufacturer from "../models/manufacturer";
 import Disc from "../models/disc";
 
 // TYPES
@@ -38,7 +38,7 @@ export const createManufacturer = async (
 
         // Check om tillverkaren redan finns i systemet
         name = name.trim().toLowerCase();
-        const existingManufacturer = await manufacturer.findOne ({ name });
+        const existingManufacturer = await Manufacturer.findOne ({ name });
 
         if(existingManufacturer) {
             res.status(409).json({ 
@@ -52,7 +52,7 @@ export const createManufacturer = async (
         }
 
         // Skapa ny tillverkare
-        const newManufacturer: IManufacturerBody = await manufacturer.create ({
+        const newManufacturer: IManufacturerBody = await Manufacturer.create ({
             name,
             country,
         });
@@ -93,7 +93,7 @@ export const getManufacturer = async (
     ): Promise<void> => {
     
     try {
-        const manufacturers: IManufacturerBody[] = await manufacturer.find();
+        const manufacturers: IManufacturerBody[] = await Manufacturer.find();
 
         if(manufacturers.length === 0){
             res.status(404).json({
@@ -139,7 +139,7 @@ export const getManufacturerByID = async (
     try {
 
         const { id } = req.params;
-        const getManufacturerByID: IManufacturerBody | null = await manufacturer.findById(id);
+        const getManufacturerByID: IManufacturerBody | null = await Manufacturer.findById(id);
 
         if(!getManufacturerByID) {
             res.status(404).json({
@@ -210,7 +210,7 @@ export const updateManufacturer = async (
             return;
         }
 
-        const manufacturerDocs: IManufacturerBody | null = await manufacturer.findByIdAndUpdate(
+        const manufacturerDocs: IManufacturerBody | null = await Manufacturer.findByIdAndUpdate(
             id, 
             updateData,
             { new: true, runValidators: true}
@@ -274,7 +274,7 @@ export const deleteManufacturerByID = async (req: Request, res: Response): Promi
             return;
         }
 
-        const deleteManufacturer: IManufacturerBody | null = await manufacturer.findById(id);
+        const deleteManufacturer: IManufacturerBody | null = await Manufacturer.findById(id);
 
         if(!deleteManufacturer) {
             res.status(400).json({ error: "Kan inte hitta en tillverkare med detta ID" });
@@ -283,7 +283,7 @@ export const deleteManufacturerByID = async (req: Request, res: Response): Promi
 
         await Disc.deleteMany({ manufacturer: deleteManufacturer._id});
 
-        await manufacturer.findByIdAndDelete(id);
+        await Manufacturer.findByIdAndDelete(id);
         
         res.status(200).json({ message: "Du har tagit bort tillverkaren och alla tillhörande discar!"});
 
