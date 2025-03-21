@@ -13,7 +13,7 @@ const router: Router = express.Router();
 
 router.post("/create", createDisc); // Skapa en disc
 
-/*router.get("/index", getDisc); // Hämta alla discar*/
+router.get("/index", getDisc); // Hämta alla discar
 
 router.get("/show/:id",getDiscsById); // Hämta specifik disc
 
