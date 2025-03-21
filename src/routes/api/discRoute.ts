@@ -1,5 +1,5 @@
 import express from "express";
-import { Request, Response } from "express";
+import { Router } from "express";
 
 import { 
     createDisc, 
@@ -9,7 +9,7 @@ import {
     deleteDisc 
     } from "../../controllers/discController";
 
-const router = express.Router();
+const router: Router = express.Router();
 
 router.post("/create", createDisc); // Skapa en disc
 

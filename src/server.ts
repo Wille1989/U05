@@ -31,6 +31,11 @@ app.get("/", (req,res) => {
     res.send("API is running");
 });
 
+app.get('/api/discs/index', (req, res) => {
+    res.json({ message: 'Discs route works!' });
+  });
+  
+
 app.listen(PORT, (): void => {
 console.log(`Server running on port ${PORT}`)
 });

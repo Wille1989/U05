@@ -1,4 +1,5 @@
 import express from "express";
+import { Router } from "express";
 import {  
     createManufacturer, 
     getManufacturer, 
@@ -7,7 +8,7 @@ import {
     updateManufacturer
 } from "../../controllers/manufacturerController";
 
-const router = express.Router();
+const router: Router = express.Router();
 
 router.post("/create", createManufacturer); // Skapa tillverkare
 
