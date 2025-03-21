@@ -21,6 +21,4 @@ router.patch("/update/:id",updateDisc); // Uppdatera befintlig disc
 
 router.delete("/delete/:id",deleteDisc); // Ta bort en disc
 
-
-
 export default router;

@@ -15,8 +15,20 @@ const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 connectDB();
 
 // CORS
+
+const allowedOrigins = [
+    "http://localhost:4200",
+    "https://u05-wbsp.onrender.com"
+];
+
 app.use(cors({ 
-    origin: 'http://localhost:4200',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)){
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true
 }));
 
@@ -30,11 +42,6 @@ app.use("/api/manufacturer", manufacturerRoute);
 app.get("/", (req,res) => {
     res.send("API is running");
 });
-
-app.get('/api/discs/index', (req, res) => {
-    res.json({ message: 'Discs route works!' });
-  });
-  
 
 app.listen(PORT, (): void => {
 console.log(`Server running on port ${PORT}`)
