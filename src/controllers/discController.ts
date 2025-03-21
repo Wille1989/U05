@@ -74,6 +74,22 @@ export const getDisc = async (
         let query: DiscQuery = {};
         const searchTerm = (req.query.search as string)?.trim().toLowerCase();
 
+        console.log("==> getDisc anropad");
+        console.log("==> searchTerm:", searchTerm);
+
+        if (!searchTerm) {
+            const Discs: IDisc[] = await Disc.find().populate("manufacturer").lean();
+          
+            res.status(200).json({
+              success: true,
+              data: Discs,
+              error: null,
+              message: "Hämtar all data då ingen specifik sökning gjordes av användaren"
+            });
+          
+            return;
+          }
+
         if(searchTerm) {
             query.$or = query.$or || [];
 
@@ -126,6 +142,8 @@ export const getDisc = async (
                 });
             } 
         }
+
+       
 
     } catch (err) {
         console.error(`fel för objektID: `, err);
