@@ -78,7 +78,7 @@ export const getDisc = async (
         console.log("==> searchTerm:", searchTerm);
 
         if (!searchTerm) {
-            const Discs: IDisc[] = await Disc.find().populate("manufacturer").lean();
+            const Discs: IDisc[] = await Disc.find().populate("manufacturer", "-__v").lean();
           
             res.status(200).json({
               success: true,
@@ -124,7 +124,7 @@ export const getDisc = async (
                 delete query.$or;
             }
 
-            let Discs: IDisc[] = await Disc.find(query).populate("manufacturer").lean();
+            let Discs: IDisc[] = await Disc.find(query).populate("manufacturer", "-__v").lean();
 
             if(Discs.length === 0){
                 res.status(404).json({
