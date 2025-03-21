@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db";
 import discRoute from "./routes/api/discRoute";
 import manufacturerRoute from "./routes/api/manufacturerRoute";
+import cors from "cors";
 
 dotenv.config();
 
@@ -12,6 +13,12 @@ const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Anslut till MongoDB
 connectDB();
+
+// CORS
+app.use(cors({ 
+    origin: 'http://localhost:4200',
+    credentials: true
+}));
 
 // Middlewares
 app.use(express.json());
