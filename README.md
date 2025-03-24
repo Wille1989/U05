@@ -173,18 +173,21 @@ Du kan söka på både tillverkare och alla discars egenskaper genom att använd
 
 ```bash
 curl -X GET "https://u05-wbsp.onrender.com/api/discs/index?search=<numeriskt värde, eller valfritt ord eller bokstav>"
+curl -X GET "http://localhost:3000/api/discs/index?search=<numeriskt värde, eller valfritt ord eller bokstav>"
 ```
 
 ### 🔍 Hämta alla discs
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/discs/index
+curl -X GET http://localhost:3000/api/discs/index
 ```
 
 ### 🔍 Hämta disc med ID
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/discs/show/<disc_id>
+curl -X GET http://localhost:3000/api/discs/show/<disc_id>
 ```
 
 ### ➕ Skapa en ny disc
@@ -196,7 +199,19 @@ Om du vill lägga till en disc för en befintlig tillverkare, hämta ut tillverk
 curl -X POST https://u05-wbsp.onrender.com/api/discs/create \
 -H "Content-Type: application/json" \
 -d "{
-  \"title\": \"Pure\",
+  \"title\": \"Test\",
+  \"type\": \"Putter\",
+  \"manufacturer\": \"67dd680dbd2fb5160033a719\",
+  \"speed\": 3,
+  \"glide\": 3,
+  \"turn\": -1,
+  \"fade\": 1
+}"
+
+curl -X POST http://localhost:3000/api/discs/create \
+-H "Content-Type: application/json" \
+-d "{
+  \"title\": \"Test\",
   \"type\": \"Putter\",
   \"manufacturer\": \"67dd680dbd2fb5160033a719\",
   \"speed\": 3,
@@ -214,12 +229,19 @@ curl -X PATCH https://u05-wbsp.onrender.com/api/discs/update/<disc_id> \
 -d "{
   \"title\": \"Nytt värde\"
 }"
+
+curl -X PATCH http://localhost:3000/api/discs/update/<disc_id> \
+-H "Content-Type: application/json" \
+-d "{
+  \"title\": \"Nytt värde\"
+}"
 ```
 
 ### ❌ Ta bort en disc
 
 ```bash
 curl -X DELETE https://u05-wbsp.onrender.com/api/discs/delete/<disc_id>
+curl -X DELETE http://localhost:3000/api/discs/delete/<disc_id>
 ```
 
 ---
@@ -230,8 +252,15 @@ curl -X DELETE https://u05-wbsp.onrender.com/api/discs/delete/<disc_id>
 curl -X POST https://u05-wbsp.onrender.com/api/manufacturer/create \
 -H "Content-Type: application/json" \
 -d "{
-  \"name\": \"Latitude 64\",
-  \"country\": \"Sweden\"
+  \"name\": \"Westside Discs\",
+  \"country\": \"USA\"
+}"
+
+curl -X POST http://localhost:3000/api/manufacturer/create \
+-H "Content-Type: application/json" \
+-d "{
+  \"name\": \"Westside Discs\",
+  \"country\": \"USA\"
 }"
 ```
 
@@ -239,12 +268,14 @@ curl -X POST https://u05-wbsp.onrender.com/api/manufacturer/create \
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/manufacturer/index
+curl -X GET http://localhost:3000/api/manufacturer/index
 ```
 
 ### 🔍 Hämta en tillverkare baserat på ID
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/manufacturer/show/<manufacturer_id>
+curl -X GET http://localhost:3000/api/manufacturer/show/<manufacturer_id>
 ```
 
 ### ✏️ Uppdatera en tillverkare
@@ -260,12 +291,19 @@ curl -X PATCH https://u05-wbsp.onrender.com/api/manufacturer/update/<manufacture
 -d "{
   \"name\": \"Nytt värde\"
 }"
+
+curl -X PATCH http://localhost:3000/api/manufacturer/update/<manufacturer_id> \
+-H "Content-Type: application/json" \
+-d "{
+  \"name\": \"Nytt värde\"
+}"
 ```
 
 ### ❌ Ta bort tillverkare (och tillhörande discar)
 
 ```bash
 curl -X DELETE https://u05-wbsp.onrender.com/api/manufacturer/delete/<manufacturer_id>
+curl -X DELETE http://localhost:3000/api/manufacturer/delete/<manufacturer_id>
 ```
 
 ---
@@ -275,7 +313,8 @@ curl -X DELETE https://u05-wbsp.onrender.com/api/manufacturer/delete/<manufactur
 API:t tillåter för närvarande följande ursprung:
 
 - `http://localhost:4200` (För framtida Frontend)
-- `https://u05-wbsp.onrender.com`
+- `https://u05-wbsp.onrender.com` (för deployment, backend)
+- `http://localhost:3000` (För local, backend)
 
 ---
 
@@ -302,10 +341,3 @@ Exempel:
 ```
 
 ---
-
-## 👨‍💻 Byggt med
-
-- Node.js
-- Express
-- MongoDB + Mongoose
-- TypeScript
