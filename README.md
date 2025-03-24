@@ -4,7 +4,7 @@ Detta API hanterar data för **discgolf-discar** och deras **tillverkare**. API:
 inlagt för dig att testa finns 3 stycken tillverkare som alla har 2 discar av varje typ i databasen. Relationen är One to Many.
 Instruktioner för att lägga till fler discar och tillverkare finns nedan.
 
-# 🛠️ Installation och uppstart av projektet
+## 🛠️ Installation och uppstart av projektet
 
 Det här projektet är byggt med:
 
@@ -67,7 +67,7 @@ PORT = 3000
 
 Obs! Du behöver en egen MongoDB Atlas-databas för att kunna köra projektet lokalt.
 Om du bara vill testa funktionerna, använd den deployade versionen på:
-https://u05-wbsp.onrender.com
+[https://u05-wbsp.onrender.com](https://u05-wbsp.onrender.com)
 
 > 🔁 Byt ut `<...>` med dina egna MongoDB Atlas-uppgifter.
 
