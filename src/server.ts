@@ -17,8 +17,9 @@ connectDB();
 // CORS
 
 const allowedOrigins = [
-    "http://localhost:4200",
-    "https://u05-wbsp.onrender.com"
+    "http://localhost:4200", // future frontend
+    "http://localhost:3000", // local backend
+    "https://u05-wbsp.onrender.com" // Deployed backend
 ];
 
 app.use(cors({ 

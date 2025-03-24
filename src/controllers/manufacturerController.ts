@@ -29,7 +29,7 @@ export const createManufacturer = async (
             res.status(404).json({
                 success: false,
                 data: null,
-                error: "Ange Namn och Land för tillverkare :)",
+                error: "Ange Namn och Land för tillverkare",
                 message: null
             });
 
@@ -61,7 +61,7 @@ export const createManufacturer = async (
             success: true,
             data: newManufacturer,
             error: null,
-            message: "Tillvarken tillagd i sortimentet!"
+            message: "Tillvarken tillagd i databasen!"
         });
 
         return;
