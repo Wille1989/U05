@@ -145,7 +145,7 @@ https://u05-wbsp.onrender.com
 ```json
 {
   "title": "Pure",
-  "type": "Putter",
+  "type": "Putter", (Endast följande kan läggas till "Distance Driver" | "Driver" | "Mid-Range" | "Putter")
   "manufacturer": "ObjectId",
   "speed": 3,
   "glide": 3,
