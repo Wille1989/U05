@@ -169,10 +169,13 @@ https://u05-wbsp.onrender.com
 
 ### 🔍 Sök i databasen
 
-Du kan söka på både tillverkare och alla discars egenskaper genom att använda dig av kommandot:
+#### OBS Alla kommandon är skrivna för radbrytning i Windows
+
+Du kan söka på både tillverkare och alla discars egenskaper genom att använda dig av kommandot
 
 ```bash
 curl -X GET "https://u05-wbsp.onrender.com/api/discs/index?search=<numeriskt värde, eller valfritt ord eller bokstav>"
+
 curl -X GET "http://localhost:3000/api/discs/index?search=<numeriskt värde, eller valfritt ord eller bokstav>"
 ```
 
@@ -180,6 +183,7 @@ curl -X GET "http://localhost:3000/api/discs/index?search=<numeriskt värde, ell
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/discs/index
+
 curl -X GET http://localhost:3000/api/discs/index
 ```
 
@@ -187,6 +191,7 @@ curl -X GET http://localhost:3000/api/discs/index
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/discs/show/<disc_id>
+
 curl -X GET http://localhost:3000/api/discs/show/<disc_id>
 ```
 
@@ -196,51 +201,26 @@ För att skapa en ny disc så behöver denna kopplas till en tillverkare genom t
 Om du vill lägga till en disc för en befintlig tillverkare, hämta ut tillverkarens ID genom `/api/manufacturer/index`.
 
 ```bash
-curl -X POST https://u05-wbsp.onrender.com/api/discs/create \
--H "Content-Type: application/json" \
--d "{
-  \"title\": \"Test\",
-  \"type\": \"Putter\",
-  \"manufacturer\": \"67dd680dbd2fb5160033a719\",
-  \"speed\": 3,
-  \"glide\": 3,
-  \"turn\": -1,
-  \"fade\": 1
-}"
+curl -X POST https://u05-wbsp.onrender.com/api/discs/create -H "Content-Type: application/json" -d "{\"title\":\"Test\",\"type\":\"Putter\",\"manufacturer\":\"<manufacturer_id>\",\"speed\":3,\"glide\":3,\"turn\":-1,\"fade\":1}"
 
-curl -X POST http://localhost:3000/api/discs/create \
--H "Content-Type: application/json" \
--d "{
-  \"title\": \"Test\",
-  \"type\": \"Putter\",
-  \"manufacturer\": \"67dd680dbd2fb5160033a719\",
-  \"speed\": 3,
-  \"glide\": 3,
-  \"turn\": -1,
-  \"fade\": 1
-}"
+curl -X POST http://localhost:3000/api/discs/create -H "Content-Type: application/json" -d "{\"title\":\"Test\",\"type\":\"Putter\",\"manufacturer\":\"<manufacturer_id>\",\"speed\":3,\"glide\":3,\"turn\":-1,\"fade\":1}"
+
 ```
 
 ### ✏️ Uppdatera en disc
 
 ```bash
-curl -X PATCH https://u05-wbsp.onrender.com/api/discs/update/<disc_id> \
--H "Content-Type: application/json" \
--d "{
-  \"title\": \"Nytt värde\"
-}"
+curl -X PATCH https://u05-wbsp.onrender.com/api/discs/update/<disc_id> -H "Content-Type: application/json" -d "{\"title\":\"Nytt värde\"}"
 
-curl -X PATCH http://localhost:3000/api/discs/update/<disc_id> \
--H "Content-Type: application/json" \
--d "{
-  \"title\": \"Nytt värde\"
-}"
+curl -X PATCH http://localhost:3000/api/discs/update/<disc_id> -H "Content-Type: application/json" -d "{\"title\":\"Nytt värde\"}"
+
 ```
 
 ### ❌ Ta bort en disc
 
 ```bash
 curl -X DELETE https://u05-wbsp.onrender.com/api/discs/delete/<disc_id>
+
 curl -X DELETE http://localhost:3000/api/discs/delete/<disc_id>
 ```
 
@@ -249,25 +229,17 @@ curl -X DELETE http://localhost:3000/api/discs/delete/<disc_id>
 ### 🏠 Skapa tillverkare
 
 ```bash
-curl -X POST https://u05-wbsp.onrender.com/api/manufacturer/create \
--H "Content-Type: application/json" \
--d "{
-  \"name\": \"Westside Discs\",
-  \"country\": \"USA\"
-}"
+curl -X POST https://u05-wbsp.onrender.com/api/manufacturer/create -H "Content-Type: application/json" -d "{\"name\":\"Westside Discs\",\"country\":\"USA\"}"
 
-curl -X POST http://localhost:3000/api/manufacturer/create \
--H "Content-Type: application/json" \
--d "{
-  \"name\": \"Westside Discs\",
-  \"country\": \"USA\"
-}"
+curl -X POST http://localhost:3000/api/manufacturer/create -H "Content-Type: application/json" -d "{\"name\":\"Westside Discs\",\"country\":\"USA\"}"
+
 ```
 
 ### 🔍 Hämta alla tillverkare
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/manufacturer/index
+
 curl -X GET http://localhost:3000/api/manufacturer/index
 ```
 
@@ -275,6 +247,7 @@ curl -X GET http://localhost:3000/api/manufacturer/index
 
 ```bash
 curl -X GET https://u05-wbsp.onrender.com/api/manufacturer/show/<manufacturer_id>
+
 curl -X GET http://localhost:3000/api/manufacturer/show/<manufacturer_id>
 ```
 
@@ -286,23 +259,16 @@ För tillverkare kan du ändra 2 värden:
 - country
 
 ```bash
-curl -X PATCH https://u05-wbsp.onrender.com/api/manufacturer/update/<manufacturer_id> \
--H "Content-Type: application/json" \
--d "{
-  \"name\": \"Nytt värde\"
-}"
+curl -X PATCH https://u05-wbsp.onrender.com/api/manufacturer/update/<manufacturer_id> -H "Content-Type: application/json" -d "{\"name\":\"Nytt värde\"}"
 
-curl -X PATCH http://localhost:3000/api/manufacturer/update/<manufacturer_id> \
--H "Content-Type: application/json" \
--d "{
-  \"name\": \"Nytt värde\"
-}"
+curl -X PATCH http://localhost:3000/api/manufacturer/update/<manufacturer_id> -H "Content-Type: application/json" -d "{\"name\":\"Nytt värde\"}"
 ```
 
 ### ❌ Ta bort tillverkare (och tillhörande discar)
 
 ```bash
 curl -X DELETE https://u05-wbsp.onrender.com/api/manufacturer/delete/<manufacturer_id>
+
 curl -X DELETE http://localhost:3000/api/manufacturer/delete/<manufacturer_id>
 ```
 
