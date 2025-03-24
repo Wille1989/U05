@@ -4,7 +4,106 @@ Detta API hanterar data för **discgolf-discar** och deras **tillverkare**. API:
 inlagt för dig att testa finns 3 stycken tillverkare som alla har 2 discar av varje typ i databasen. Relationen är One to Many.
 Instruktioner för att lägga till fler discar och tillverkare finns nedan.
 
+# 🛠️ Installation och uppstart av projektet
+
+Det här projektet är byggt med:
+
+- **Node.js**
+- **Express**
+- **MongoDB (via Mongoose)**
+- **CORS**
+- **TypeScript**
+- **nodemon**
+
 ---
+
+## 📦 1. Klona projektet (om det är på GitHub)
+
+```bash
+git clone https://github.com/Wille1989/U05.git
+```
+
+---
+
+## 📁 2. Installera beroenden
+
+Kör följande kommando i projektmappen:
+
+```bash
+npm install
+```
+
+Detta installerar alla nödvändiga paket jag har använt:
+
+- `express`
+- `mongoose`
+- `cors`
+- `dotenv`
+- `typescript`
+- `nodemon`
+
+---
+
+## 🔧 3. Kompilera TypeScript
+
+Projektet är skrivet i TypeScript, så det måste kompileras till JavaScript innan det körs:
+
+```bash
+npm run build
+```
+
+Det skapar en `dist/`-mapp med den kompilerade koden.
+
+---
+
+## 🔐 4. Skapa en `.env`-fil
+
+Skapa en fil i projektets rotmapp som heter `.env` och kopiera in följande:
+
+```env
+MONGO_URI = mongodb+srv://<ditt-användarnamn>:<ditt-lösenord>@<cluster-url>/<databasnamn>?retryWrites=true&w=majority&appName=<appNamn>
+PORT = 3000
+```
+
+Obs! Du behöver en egen MongoDB Atlas-databas för att kunna köra projektet lokalt.
+Om du bara vill testa funktionerna, använd den deployade versionen på:
+https://u05-wbsp.onrender.com
+
+> 🔁 Byt ut `<...>` med dina egna MongoDB Atlas-uppgifter.
+
+---
+
+## 🚀 5. Starta projektet
+
+### Utvecklingsläge (med nodemon)
+
+```bash
+npm run dev
+```
+
+Detta kompilerar TypeScript och startar servern med `nodemon`, så att den automatiskt startas om vid ändringar.
+
+### Produktion eller manuell körning
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 🧾 Exempel på `package.json`-scripts
+
+Lägg till detta i din `package.json`:
+
+```json
+"scripts": {
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "dev": "ts-node src/server.ts",
+  "prepare": "npm run build"
+}
+```
 
 ## 🚀 Base URL
 

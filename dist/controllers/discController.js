@@ -63,6 +63,18 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let query = {};
         const searchTerm = (_a = req.query.search) === null || _a === void 0 ? void 0 : _a.trim().toLowerCase();
+        console.log("==> getDisc anropad");
+        console.log("==> searchTerm:", searchTerm);
+        if (!searchTerm) {
+            const Discs = yield disc_1.default.find().populate("manufacturer", "-__v").lean();
+            res.status(200).json({
+                success: true,
+                data: Discs,
+                error: null,
+                message: "Hämtar all data då ingen specifik sökning gjordes av användaren"
+            });
+            return;
+        }
         if (searchTerm) {
             query.$or = query.$or || [];
             query.$or.push({ title: { $regex: `.*${searchTerm}.*`, $options: "i" } });
@@ -89,7 +101,7 @@ const getDisc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (query.$or && query.$or.length === 0) {
                 delete query.$or;
             }
-            let Discs = yield disc_1.default.find(query).populate("manufacturer").lean();
+            let Discs = yield disc_1.default.find(query).populate("manufacturer", "-__v").lean();
             if (Discs.length === 0) {
                 res.status(404).json({
                     success: true,

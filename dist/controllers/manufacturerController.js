@@ -26,7 +26,7 @@ const createManufacturer = (req, res) => __awaiter(void 0, void 0, void 0, funct
             res.status(404).json({
                 success: false,
                 data: null,
-                error: "Ange Namn och Land för tillverkare :)",
+                error: "Ange Namn och Land för tillverkare",
                 message: null
             });
             return;
@@ -52,7 +52,7 @@ const createManufacturer = (req, res) => __awaiter(void 0, void 0, void 0, funct
             success: true,
             data: newManufacturer,
             error: null,
-            message: "Tillvarken tillagd i sortimentet!"
+            message: "Tillvarken tillagd i databasen!"
         });
         return;
     }

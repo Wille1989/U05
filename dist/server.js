@@ -15,8 +15,20 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 // Anslut till MongoDB
 (0, db_1.default)();
 // CORS
+const allowedOrigins = [
+    "http://localhost:4200", // future frontend
+    "http://localhost:3000", // local backend
+    "https://u05-wbsp.onrender.com" // Deployed backend
+];
 app.use((0, cors_1.default)({
-    origin: 'http://localhost:4200',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true
 }));
 // Middlewares
