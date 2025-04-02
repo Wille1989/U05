@@ -12,12 +12,28 @@
     "@types/mongoose": "^5.11.96",
     "@types/node": "^22.13.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.2"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "prepare": "npm run build"
-  }
+  },
+  "name": "u05",
+  "version": "1.0.0",
+  "description": "Detta API hanterar data för **discgolf-discar** och deras **tillverkare**. API:t följer RESTful principer och är byggt med Node.js, Express och MongoDB.  \r inlagt för dig att testa finns 3 stycken tillverkare som alla har 2 discar av varje typ i databasen. Relationen är One to Many.\r Instruktioner för att lägga till fler discar och tillverkare finns nedan.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wille1989/U05.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Wille1989/U05/issues"
+  },
+  "homepage": "https://github.com/Wille1989/U05#readme"
 }

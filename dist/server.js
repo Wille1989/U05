@@ -17,6 +17,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 // CORS
 const allowedOrigins = [
     "http://localhost:4200", // future frontend
+    "http://127.0.0.1:5500/index.html", // dev frontend, local
     "http://localhost:3000", // local backend
     "https://u05-wbsp.onrender.com" // Deployed backend
 ];
