@@ -17,7 +17,8 @@ connectDB();
 // CORS
 
 const allowedOrigins = [
-    "https://bright-puffpuff-b48563.netlify.app", // future frontend
+    "https://bright-puffpuff-b48563.netlify.app", // future frontend for U06
+    "http://localhost:4200", // Angular Frontend
     "http://127.0.0.1:5500", // dev frontend, local
     "http://localhost:3000", // local backend
     "https://u05-wbsp.onrender.com" // Deployed backend
